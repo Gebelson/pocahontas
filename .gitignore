@@ -7,8 +7,12 @@ Desktop.ini
 .vscode/
 .idea/
 
-# ROMs e arquivos temporários locais
+# ROMs e arquivos temporÃ¡rios locais
 *.bin
 *.gen
 *.smd
 *.zip
+.vercel
+.env*
+
+.playwright-cli/

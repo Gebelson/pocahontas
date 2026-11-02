@@ -1,39 +1,32 @@
-# Pocahontas · Modo iPad
+# Pocahontas · Acesso direto para iPad
 
-Site estático e PWA em português, preparado para o emulador open source [EmulatorJS](https://github.com/EmulatorJS/EmulatorJS), com suporte a Mega Drive (núcleo `segaMD`), controles por toque no iPad e tela horizontal.
+Esta versão **não pede um arquivo de jogo ao visitante**. Ao abrir, carrega automaticamente o player público do título **Disney's Pocahontas**, Mega Drive, via incorporação disponibilizada por [Arcader.com](https://arcader.com/pocahontas/). O provedor publica a URL e o código de embed do jogo.
 
-## O que está incluso
-- Tela inicial dedicada a um único jogo.
-- Seleção local de arquivo Mega Drive (`.bin`, `.gen`, `.md`, `.smd`, `.zip`).
-- Persistência opcional do arquivo escolhido somente no navegador do dispositivo via IndexedDB, quando disponível. Na próxima visita, botão **Continuar neste iPad**.
-- EmulatorJS com modo mobile ativado em dispositivos touch, usando seus controles virtuais nativos. O iPad não foi testado fisicamente neste ambiente.
-- Botão para tentar tela cheia e suporte a **Adicionar à Tela de Início** para reduzir a interface do Safari.
-- Manifesto PWA, ícones e service worker de cache somente do shell.
-- Fundo responsivo, sem anúncios, catálogo nem navegação extra.
+## Publicação na Vercel
 
-## Como usar
-1. Publique **a pasta inteira** em uma hospedagem HTTPS (por exemplo, GitHub Pages, Vercel ou Netlify). Não abra o arquivo diretamente via `file://`.
-2. Acesse o endereço no Safari do iPad. Prefira usar no modo horizontal.
-3. Toque **Escolher arquivo do jogo** e selecione sua cópia legal de ROM Mega Drive em Arquivos.
-4. O EmulatorJS será carregado via CDN (`https://cdn.emulatorjs.org/stable/data/`), por isso é necessária conexão pelo menos no primeiro uso.
-5. Opcionalmente, no Safari, **Compartilhar → Adicionar à Tela de Início**, e abra pelo ícone da Tela de Início. O iPadOS pode manter indicadores da barra de status, mesmo em modo app.
-6. O EmulatorJS pode fornecer menu para salvar/carregar estados de jogo. Os saves são locais ao navegador, não sincronizados entre aparelhos.
+1. Descompacte o ZIP.
+2. Substitua os arquivos do projeto anterior pelos arquivos desta versão.
+3. Faça novo deploy na Vercel. É um site estático, não precisa instalar dependências.
+4. Acesse `https://pocahontas.vercel.app` e recarregue a página. Se já havia instalado o PWA, feche e abra novamente após o deploy.
 
-## Publicando via GitHub Pages
-Este repositório já inclui um fluxo automatizado do GitHub Actions (`.github/workflows/deploy.yml`):
-1. No seu repositório no GitHub, acesse **Settings** → **Pages**.
-2. Em **Build and deployment** > **Source**, selecione **GitHub Actions**.
-3. O deploy será feito automaticamente e o site ficará disponível em:
-   `https://gebelson.github.io/pocahontas/`
+## Experiência
 
-## Para publicar um jogo que já está licenciado para redistribuição
-Edite a constante `HOSTED_ROM_URL` perto do final de `index.html` para apontar para o arquivo que você tem autorização para hospedar, por exemplo `./games/jogo-autorizado.bin`.
+- A página exibe diretamente um iframe do player remoto. Não há seleção de arquivos nem tela de entrada.
+- O iframe ocupa uma área 4:3 centralizada, encaixada na tela do iPad sem deformar a imagem.
+- O menu discreto permite solicitar tela cheia, reiniciar e abrir o jogo no site de origem quando necessário.
+- No Safari, Compartilhar → Adicionar à Tela de Início deixa o site com aparência de aplicativo.
 
-O projeto **não inclui ROM, personagens, sprites, imagens, música ou outros recursos do jogo protegido**. O fato de um terceiro disponibilizar uma ROM em seu site não dá permissão para redistribuí-la em outro site. O nome do jogo é usado apenas para identificar a experiência solicitada.
+## Limitações importantes
 
-## Limitações e teste
-- A interface foi criada e validada estaticamente, mas não foi possível executar um teste real de emulação no iPad aqui.
-- Suporte à API `requestFullscreen` varia no Safari/iPadOS; a instalação como web app via Tela de Início é o caminho mais confiável.
-- Jogabilidade depende do arquivo de ROM fornecido, de sua compatibilidade e da conexão com o CDN do EmulatorJS.
-- Alguns dispositivos podem limitar armazenamento local do navegador, exigindo selecionar a ROM novamente.
-- O emulador, os cores e controles pertencem ao projeto EmulatorJS, sujeitos à respectiva licença; confira o repositório antes de self-hosting.
+- **Dependência de terceiros:** o jogo é servido pelo Arcader, não pela Vercel nem pelo seu servidor. Não foi possível confirmar se o iframe do provedor carrega e funciona corretamente no iPad. O provedor pode alterar ou bloquear o embed a qualquer momento.
+- **Controles por toque:** não podem ser garantidos. Como o emulador está hospedado em outra origem, nosso site não pode injetar controles ou reconfigurar botões dentro do iframe. Se o provedor não oferecer controles touch, é preciso integração autorizada ou um emulador próprio com acesso licenciado à ROM.
+- **Direitos autorais:** não há arquivos de jogo, imagens do jogo ou ROM incluídos neste pacote. A existência do código de incorporação não transfere direitos sobre o jogo da Disney.
+- **Tela cheia:** `requestFullscreen` depende do navegador; no Safari iPad a opção Adicionar à Tela de Início geralmente oferece a experiência mais limpa.
+- **Não houve teste físico em iPad**, nem confirmação de carregamento do iframe em navegador real neste ambiente.
+
+## Para versão independente e garantida
+
+A solução mais robusta usa EmulatorJS e ROM servida pelo próprio site (com autorização para sua hospedagem). Assim é possível integrar de verdade controles táteis, save states e uma experiência estável, sem dependências do Arcader.
+
+## Estabilidade e ciclo de vida
+Consulte INVESTIGATION.md para evidências, limites e testes. O menu não recria o player. Reiniciar exige confirmação. O site não consegue garantir retomada nem saves no player externo, especialmente em Safari/iOS. Não há detecção confiável de execução ou congelamento entre origens.
