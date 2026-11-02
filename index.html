@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#101a1c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Pocahontas">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Um espaço de jogo em tela cheia, adaptado ao iPad para jogar seu arquivo licenciado de Mega Drive.">
+  <meta name="color-scheme" content="dark">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <title>Pocahontas · Modo iPad</title>
+  <style>
+    :root { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #f1f4ef; background: #101a1c; }
+    * { box-sizing: border-box; }
+    html, body { width:100%; height:100%; height:100dvh; margin:0; overflow:hidden; overscroll-behavior:none; }
+    body { -webkit-user-select: none; user-select:none; }
+    button, label { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; cursor:pointer; }
+    button:focus-visible, label:focus-visible { outline: 3px solid #d4e891; outline-offset: 4px; }
+    .shell { position: fixed; inset:0; width:100%; height:100%; height:100dvh; background:radial-gradient(ellipse at 50% 12%,#2c4b46 0%,#162726 48%,#0c1317 100%); overflow:hidden; }
+    .grain { position:absolute; inset:0; pointer-events:none; opacity:.18; background-image:repeating-linear-gradient(135deg,transparent 0 18px,#c6d6ac09 19px 20px); }
+    .shell::after { content:""; position:absolute; width:70vw; height:70vw; max-width:800px; max-height:800px; border:1px solid #ffffff0b; border-radius:50%; left:50%; top:42%; transform:translate(-50%,-50%); pointer-events:none; }
+    .landing { position:absolute; inset:0; z-index:3; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:max(env(safe-area-inset-top),20px) max(env(safe-area-inset-right),18px) max(env(safe-area-inset-bottom),24px) max(env(safe-area-inset-left),18px); text-align:center; }
+    .eyebrow { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.32em; color:#d4e891; }
+    .crest { display:grid; place-items:center; margin-bottom:20px; width:82px; height:82px; border:1px solid #d4e89160; border-radius:25px; background:#d4e89110; box-shadow:0 14px 60px #0003; }
+    .crest svg { width:39px; height:39px; fill:none; stroke:#d7e994; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    h1 { margin:12px 0 8px; font-size:clamp(36px,5.8vw,74px); font-weight:800; line-height:1.04; letter-spacing:-.065em; }
+    h1 span { color:#d4e891; }
+    .subtitle { max-width:520px; margin:10px 0 25px; color:#c7d3d1; font-size:clamp(14px,1.8vw,17px); line-height:1.6; }
+    .actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center; }
+    .button { border:0; border-radius:16px; padding:16px 24px; min-width:200px; background:#d4e891; color:#122019; font-weight:800; font-size:15px; box-shadow:0 12px 40px #0003; }
+    .button:active { transform:translateY(1px); }
+    .button.secondary { background: #ffffff0d; border:1px solid #ffffff35; color:#fff; box-shadow:none; }
+    .button:disabled { opacity:.45; cursor:not-allowed; }
+    input[type=file] { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+    .notes { margin-top:25px; color:#9caca7; font-size:12px; line-height:1.6; max-width:480px; }
+    .privacy { margin-top:14px; font-size:11px; letter-spacing:.02em; color:#a5b3ac; }
+    .loading { z-index:4; position:absolute; inset:0; display:none; place-items:center; background:#101a1c; padding:20px; text-align:center; }
+    .loading p { color:#cdd6d0; font-size:14px; }
+    .spinner { width:42px; height:42px; border:3px solid #fff2; border-top-color:#d4e891; border-radius:50%; animation:rotate .75s linear infinite; margin:0 auto 18px; }
+    @keyframes rotate { to { transform:rotate(360deg); } }
+    .player { position:absolute; inset:0; z-index:2; display:none; background:#000; }
+    #game { position:absolute; width:100%; height:100%; height:100dvh; inset:0; touch-action:none; }
+    .top-controls { display:none; position:absolute; z-index:6; top:max(env(safe-area-inset-top),10px); left:max(env(safe-area-inset-left),12px); gap:7px; }
+    .top-controls button { border:1px solid #ffffff44; color:#fff; background:#091117bd; backdrop-filter:blur(10px); border-radius:12px; padding:10px 12px; font-size:12px; font-weight:700; }
+    .rotate-hint { display:none; position:absolute; pointer-events:none; bottom:max(env(safe-area-inset-bottom),8px); left:0; right:0; z-index:5; text-align:center; font-size:11px; color:#cfd8cf; text-shadow:0 2px 8px #000; }
+    .alert { margin-top:18px; color:#ffe9a6; font-size:13px; max-width:520px; line-height:1.4; display:none; }
+    @media (orientation: portrait) and (pointer:coarse) { .rotate-hint { display:block; } }
+    @media (max-height:490px) { .crest { display:none; } .landing { justify-content:flex-start; overflow-y:auto; } h1 { font-size:clamp(27px,6vh,40px); } .subtitle { margin:6px 0 12px; font-size:12px; } .notes { margin-top:10px; } .button { padding:12px 18px; } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration:2s; } }
+  </style>
+</head>
+<body>
+  <main class="shell" id="shell">
+    <div class="grain" aria-hidden="true"></div>
+    <section class="landing" id="landing">
+      <div class="crest" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 15h3m-1.5-1.5v3M16 14h.01M19 16h.01"/><path d="M6.8 8h10.4a4 4 0 0 1 3.9 3.1l1 4.6a2.8 2.8 0 0 1-4.3 2.9l-2.9-2H9.1l-2.9 2a2.8 2.8 0 0 1-4.3-2.9l1-4.6A4 4 0 0 1 6.8 8Z"/></svg></div>
+      <div class="eyebrow">Mega Drive · 1996</div>
+      <h1>Disney's <span>Pocahontas</span></h1>
+      <p class="subtitle">Seu jogo, sua tela. Uma experiência dedicada, sem menus de outros jogos, feita para jogar na horizontal no iPad.</p>
+      <div class="actions">
+        <button id="loadSaved" class="button secondary" style="display:none" type="button">Continuar neste iPad</button>
+        <label for="romInput" class="button" role="button" tabindex="0">Escolher arquivo do jogo</label>
+      </div>
+      <input id="romInput" type="file" accept=".bin,.gen,.md,.smd,.zip,application/zip,application/octet-stream" aria-label="Selecionar arquivo próprio de Mega Drive">
+      <p class="alert" id="error" role="alert"></p>
+      <p class="notes">Compatível com arquivos .bin, .gen, .md, .smd ou .zip. O jogo não vem incluído. O primeiro carregamento requer internet para baixar o emulador.</p>
+      <p class="privacy">Se você escolher um arquivo, ele é carregado localmente no navegador. Nada é enviado ao servidor deste site.</p>
+    </section>
+    <div class="loading" id="loading"><div><div class="spinner"></div><strong>Iniciando o Mega Drive</strong><p>Preparando o emulador e os controles para toque...</p></div></div>
+    <section class="player" id="player" aria-label="Emulador Mega Drive"><div id="game"></div></section>
+    <div class="top-controls" id="topControls"><button id="goHome" type="button" title="Sair do emulador e escolher outro arquivo">↩ Início</button><button id="fullscreen" type="button">⛶ Tela cheia</button></div>
+    <div class="rotate-hint" id="rotateHint">Gire o iPad na horizontal para aproveitar mais espaço</div>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      // Este site NÃO contém a ROM. Pode ser iniciado selecionando um arquivo local,
+      // ou configurado por quem tem autorização para hospedar o arquivo.
+      const HOSTED_ROM_URL = ''; // Ex.: './games/jogo-autorizado.bin'
+      const els = Object.fromEntries(['landing','loading','player','romInput','loadSaved','error','topControls','goHome','fullscreen','shell'].map(id => [id, document.getElementById(id)]));
+      let fileUrl = null;
+      let started = false;
+      const DB_NAME = 'pocahontas-ipad-private-rom';
+      const DB_STORE = 'files';
+      function openDb() {
+        return new Promise((resolve, reject) => {
+          if (!('indexedDB' in window)) return reject(new Error('IndexedDB indisponível'));
+          const req = indexedDB.open(DB_NAME, 1);
+          req.onupgradeneeded = () => req.result.createObjectStore(DB_STORE);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+      async function getRom() {
+        const db = await openDb();
+        try { return await new Promise((resolve,reject) => { const tx=db.transaction(DB_STORE,'readonly'); const req=tx.objectStore(DB_STORE).get('rom'); req.onsuccess=()=>resolve(req.result||null); req.onerror=()=>reject(req.error); }); }
+        finally { db.close(); }
+      }
+      async function putRom(file) {
+        const db = await openDb();
+        try { return await new Promise((resolve,reject)=>{ const tx=db.transaction(DB_STORE,'readwrite'); tx.objectStore(DB_STORE).put(file,'rom'); tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error); }); }
+        finally { db.close(); }
+      }
+      function error(msg) { els.error.textContent = msg; els.error.style.display='block'; }
+      async function refreshSaved() {
+        try { const saved=await getRom(); els.loadSaved.style.display=saved ? 'inline-block':'none'; }
+        catch(e) { els.loadSaved.style.display='none'; }
+      }
+      function begin(url) {
+        if (started) return;
+        if (!url) { error('Nenhum arquivo foi informado.'); return; }
+        started = true;
+        els.error.style.display = 'none';
+        els.landing.style.display = 'none';
+        els.loading.style.display = 'grid';
+        els.player.style.display = 'block';
+        const isTouch = navigator.maxTouchPoints > 0 || matchMedia('(pointer:coarse)').matches;
+        // Configuração documentada: https://emulatorjs.org/docs/options/
+        window.EJS_player = '#game';
+        window.EJS_core = 'segaMD';
+        window.EJS_controlScheme = 'segaMD';
+        window.EJS_gameUrl = url;
+        window.EJS_gameName = "Disney's Pocahontas";
+        window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+        window.EJS_startOnLoaded = true;
+        window.EJS_fullscreenOnLoaded = false;
+        window.EJS_backgroundColor = '#000';
+        window.EJS_color = '#d4e891';
+        window.EJS_volume = 0.65;
+        if (isTouch) window.EJS_browserMode = 'mobile';
+        const script = document.createElement('script');
+        script.src = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+        script.async = true;
+        script.onload = () => {
+          els.loading.style.display = 'none';
+          els.topControls.style.display = 'flex';
+        };
+        script.onerror = () => {
+          els.loading.style.display = 'none';
+          els.topControls.style.display = 'flex';
+          error('Falha ao carregar o EmulatorJS. Verifique sua conexão e atualize a página.');
+          els.landing.style.display = 'flex';
+        };
+        document.head.append(script);
+      }
+      async function onFileChange(evt) {
+        const file = evt.target.files?.[0];
+        if (!file) return;
+        if (!/\.(bin|gen|md|smd|zip)$/i.test(file.name)) { error('Use um arquivo de Mega Drive .bin, .gen, .md, .smd ou .zip.'); return; }
+        if (file.size > 80 * 1024 * 1024) { error('O arquivo é grande demais para o jogo do Mega Drive.'); return; }
+        try { await putRom(file); } catch(e) { /* O jogo ainda funciona sem persistência. */ }
+        fileUrl = URL.createObjectURL(file);
+        begin(fileUrl);
+      }
+      els.romInput.addEventListener('change', onFileChange);
+      els.loadSaved.addEventListener('click', async () => {
+        try { const saved = await getRom(); if (!saved) return error('Arquivo salvo indisponível. Selecione-o novamente.'); fileUrl = URL.createObjectURL(saved); begin(fileUrl); }
+        catch(e) { error('Não foi possível recuperar o arquivo salvo. Selecione-o novamente.'); }
+      });
+      document.querySelector('label[for="romInput"]').addEventListener('keydown', e => { if (e.key==='Enter' || e.key===' ') {e.preventDefault(); els.romInput.click();} });
+      els.goHome.addEventListener('click', () => { window.location.reload(); });
+      els.fullscreen.addEventListener('click', async () => {
+        const root = els.shell;
+        try { if (document.fullscreenElement) await document.exitFullscreen(); else if (root.requestFullscreen) await root.requestFullscreen(); else error('Para usar o iPad sem a barra do Safari, compartilhe este site e escolha “Adicionar à Tela de Início”.'); }
+        catch(e) { error('No iPad, use Compartilhar → Adicionar à Tela de Início para abrir como app.'); }
+      });
+      if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+      refreshSaved();
+      if (HOSTED_ROM_URL) { const quick = document.createElement('button'); quick.className='button secondary'; quick.textContent='Jogar agora'; quick.type='button'; quick.addEventListener('click',()=>begin(HOSTED_ROM_URL)); document.querySelector('.actions').prepend(quick); }
+    })();
+  </script>
+</body>
+</html>

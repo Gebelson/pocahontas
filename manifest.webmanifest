@@ -1,0 +1,17 @@
+{
+  "name": "Pocahontas · Modo iPad",
+  "short_name": "Pocahontas",
+  "description": "Uma interface dedicada de emulação de Mega Drive no iPad, com ROM fornecida pelo usuário.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "background_color": "#101a1c",
+  "theme_color": "#101a1c",
+  "orientation": "any",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
